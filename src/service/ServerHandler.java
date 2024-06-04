@@ -13,7 +13,6 @@ import server.ContentType;
 import server.ResponseCodes;
 import util.Utils;
 
-
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -30,11 +29,17 @@ public class ServerHandler extends BasicServer {
     public ServerHandler(String host, int port) throws IOException {
         super(host, port);
         scheduleModel = generateScheduleModel();
+        registerGet("/", this::mainHandler);
         registerGet("/schedule", this::scheduleHandler);
-        registerGet("/schedule/thisday", this::thisDayHandler);
+        registerGet("/schedule/currentday", this::thisDayHandler);
         registerPost("/delete", this::deleteHandler);
         registerPost("/register", this::registerPost);
         registerGet("/register", this::registerHandler);
+    }
+
+    private void mainHandler(HttpExchange exchange){
+        String templateFile = "index.ftlh";
+        renderTemplate(exchange, templateFile, null);
     }
 
     private void registerHandler(HttpExchange exchange) {
@@ -127,7 +132,7 @@ public class ServerHandler extends BasicServer {
                 model.put("selectedDate", selectedDate);
                 model.put("patients", patients);
 
-                String templateFile = "thisday.ftlh";
+                String templateFile = "currentday.ftlh";
                 renderTemplate(exchange, templateFile, model);
             } catch (DateTimeParseException e) {
                 e.printStackTrace();
@@ -191,7 +196,7 @@ public class ServerHandler extends BasicServer {
     private static Configuration initFreeMarker() {
         try {
             Configuration cfg = new Configuration(Configuration.VERSION_2_3_29);
-            cfg.setDirectoryForTemplateLoading(new File("data"));
+            cfg.setDirectoryForTemplateLoading(new File("templates"));
             cfg.setDefaultEncoding("UTF-8");
             cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
             cfg.setLogTemplateExceptions(false);
